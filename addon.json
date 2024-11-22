@@ -1,0 +1,19 @@
+{
+  "title": "Simple Timer Plus",
+  "type": "tool",
+  "tags": [
+    "fun",
+    "build"
+  ],
+  "ignore": [
+    "*.txt",
+    "*.raw",
+    "*.log",
+    "*.vmf",
+    "*.prt",
+    "*.ppl",
+    "*.vmx",
+    "*.vbsp",
+    "*.bak"
+  ]
+}
