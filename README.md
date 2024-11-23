@@ -1,4 +1,4 @@
-# SimpleTimerPlus
+# Simple Timer Plus
 A modified version of Simple Timer for Garry's Mod
 
 By convention, the change notes in the workshop are to include all known changes with each update, in dash point format that briefly summarizes each change (i.e. "- Added a new font: newfont").
