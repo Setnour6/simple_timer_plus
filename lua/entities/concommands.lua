@@ -29,7 +29,34 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args) -- currently 
         if IsValid(ent) then
             local timerName = ent:GetST_Name()
             local color = ent:GetST_Color()  local r = math.floor(color.x * 255)  local g = math.floor(color.y * 255)  local b = math.floor(color.z * 255)
-            print("Timer name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")")
+            local timerTime = ent:GetST_Time()
+            local currentTimerTime = ent:GetST_CurTime()
+            local currentVisibility = ent:GetST_HHud()
+            local currentVisibilitySound = ent:GetST_HSnd()
+            local currentVisibilityChatText = ent:GetST_HNot()
+            local currentStartEvent = ent:GetST_EStart()
+            local currentStopEvent = ent:GetST_EStop()
+            local currentEndEvent = ent:GetST_EEnd()
+            local currentMission = ent:GetST_Mission()
+            local currentMissionEvent = ent:GetST_MEvent()
+            local currentAfterMission = ent:GetST_AMission()
+            local currentAfterTimer = ent:GetST_ATimer()
+            local timerState = ent:GetST_ATimer()
+            local timerFont = ent:GetST_CustomFont()
+            local currentVisibilityTimerText = ent:GetST_HideTimer()
+            local timerStartSound = ent:GetST_StartSound()
+            local timerStopSound = ent:GetST_StopSound()
+            local timerEndSound = ent:GetST_EndSound()
+            local timerFadeInTime = ent:GetST_FadeInTime()
+            local timerFadeOutTime = ent:GetST_FadeOutTime()
+            local currentJustification = ent:GetST_JustifyText()
+            local currentVisibilityEntity = ent:GetST_EntityHidden()
+            print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nHUD Visibility: " .. tostring(currentVisibility)
+            .. "\nSound Toggle: " .. tostring(currentVisibilitySound) .. "\nChat Message: " .. tostring(currentVisibilityChatText) .. "\nStart Event: " .. currentStartEvent .. "\nStop Event: " .. currentStopEvent
+            .. "\nEnd Event: " .. currentEndEvent .. "\nMission: " .. tostring(currentMission) .. "\nMission Event: " .. currentMissionEvent .. "\nAfter Mission: " .. currentAfterMission
+            .. "\nAftermath: " .. currentAfterTimer .. "\nState: " .. timerState .. "\nFont: " .. timerFont .. "\nHidden Text: " .. tostring(currentVisibilityTimerText)
+            .. "\nStart Sound: " .. timerStartSound .. "\nStop Sound: " .. timerStopSound .. "\nEnd Sound: " .. timerEndSound .. "\nFade-in Time: " .. math.Round(timerFadeInTime, 2)
+            .. "\nFade-out Time: " .. math.Round(timerFadeOutTime, 2) .. "\nText Realignment: " .. tostring(currentJustification) .. "\nEntity Hidden: " .. tostring(currentVisibilityEntity) .. "")
         else
             print("Timer entity not found.")
         end
@@ -134,6 +161,47 @@ concommand.Add("simpletimerplus_settime", function(ply, cmd, args)
         end
     else
         print("Usage: simpletimerplus_settime <new_time_in_seconds>")
+    end
+end)
+
+concommand.Add("simpletimerplus_getcurrenttime", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            if ent:GetST_State() == 1 then
+                local remainingTime = math.max(ent:GetST_CurTime(), math.max(0, ent:GetST_Timer() - CurTime())) -- math.Round(math.max(0, ent:GetST_Timer() - CurTime()), 2)
+                print("Timer's current running time is: " .. remainingTime)
+            else
+                print("Timer's current running time is: 0 (Timer is not currently running)")
+            end
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return remainingTime
+end)
+
+concommand.Add("simpletimerplus_setcurrenttime", function(ply, cmd, args)
+    if #args == 1 then
+        local newCurrentTime = tonumber(args[1])
+        if newCurrentTime and newCurrentTime >= 0 and newCurrentTime <= 3600 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    if ent:GetST_State() == 1 then
+                        local newTimerEnd = CurTime() + newCurrentTime
+                        ent:SetST_Timer(newTimerEnd)
+                        print("Timer's current running time has been set to: " .. newCurrentTime .. " seconds.")
+                    else
+                        print("Timer is not currently running. Cannot set time.")
+                    end
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid time. Please provide a number between 0 and 3600.")
+        end
+    else
+        print("Usage: simpletimerplus_setcurrenttime <new_current_time_in_seconds>")
     end
 end)
 
@@ -559,7 +627,7 @@ concommand.Add("simpletimerplus_getfadeintime", function(ply, cmd, args)
     for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
         if IsValid(ent) then
             local timerFadeInTime = ent:GetST_FadeInTime()
-            print("Timer fade-in time is: " .. math.Round(timerFadeInTime * 1000) / 1000)
+            print("Timer fade-in time is: " .. math.Round(timerFadeInTime, 2))
         else
             print("Timer entity not found.")
         end
@@ -591,7 +659,7 @@ concommand.Add("simpletimerplus_getfadeouttime", function(ply, cmd, args)
     for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
         if IsValid(ent) then
             local timerFadeOutTime = ent:GetST_FadeOutTime()
-            print("Timer fade-out time is: " .. math.Round(timerFadeOutTime * 1000) / 1000)
+            print("Timer fade-out time is: " .. math.Round(timerFadeOutTime, 2))
         else
             print("Timer entity not found.")
         end
@@ -668,6 +736,7 @@ if SERVER then
                         ent:SetST_Time(600)
                         ent:SetST_CustomFont("Misery")
                         ent:SetST_FadeInTime(1)
+                        ent:SetST_FadeOutTime(0)
                         ent:SetST_JustifyText(true)
                         ent:SetST_StartSound(5)
                         ent:SetST_StopSound(4)
@@ -698,6 +767,8 @@ if SERVER then
                         ent:SetST_Mission(0)
                         ent:SetST_AMission(0)
                         ent:SetST_ATimer(2)
+                        ent:SetST_HideTimer(false)
+                        ent:SetST_EntityHidden(false)
                         print("Timer values have been set successfully.")
                     else
                         print("Timer entity not found.")

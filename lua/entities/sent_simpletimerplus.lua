@@ -316,7 +316,8 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 3, "ST_FadeOutTime", { KeyName = "stfadeouttime", Edit = { title = "Fade Out Time", category = "Main", type = "Float", min = 0, max = 1, order = 20 } } )
 	self:NetworkVar("Bool", 4, "ST_JustifyText", { KeyName = "stjustifytext", Edit = { title = "Realign Timer (Some Fonts Only)", category = "Main", type = "Bool", order = 21 } })
 	self:NetworkVar("Bool", 5, "ST_EntityHidden", { KeyName = "stentityhidden", Edit = { title = "Hide Entity", category = "Main", type = "Bool", order = 22 } })
-	self:SetST_State( 0 ) self:SetST_Timer( 0 ) self:SetST_NextUse( 0 )
+	self:NetworkVar( "Float", 12, "ST_CurTime" )
+	self:SetST_State( 0 ) self:SetST_Timer( 0 ) self:SetST_NextUse( 0 ) self:SetST_CurTime(math.Round(math.max(0, self:GetST_Timer() - CurTime()), 2))
 	if SERVER then
 		self:NetworkVarNotify( "ST_State", function( self, var, old, new )
 			if old == new then return false end
