@@ -24,7 +24,7 @@ local function AutoComplete( cmd, args, ... )
     return autoCompletes
 end
 
-concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args) -- currently only has name and color gatherings
+concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
     for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
         if IsValid(ent) then
             local timerName = ent:GetST_Name()
@@ -51,12 +51,19 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args) -- currently 
             local timerFadeOutTime = ent:GetST_FadeOutTime()
             local currentJustification = ent:GetST_JustifyText()
             local currentVisibilityEntity = ent:GetST_EntityHidden()
+            local currentGradientTextEffect = ent:GetST_GradientTextEffect()
+            local timerGradientSpeed = ent:GetST_GradientSpeed()
+            local timerGradientFrequency = ent:GetST_GradientFrequency()
+            local currentGlitchTextEffect = ent:GetST_GlitchTextEffect()
+            local currentGlitchFrequency = ent:GetST_GlitchFrequency()
             print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nHUD Visibility: " .. tostring(currentVisibility)
             .. "\nSound Toggle: " .. tostring(currentVisibilitySound) .. "\nChat Message: " .. tostring(currentVisibilityChatText) .. "\nStart Event: " .. currentStartEvent .. "\nStop Event: " .. currentStopEvent
             .. "\nEnd Event: " .. currentEndEvent .. "\nMission: " .. tostring(currentMission) .. "\nMission Event: " .. currentMissionEvent .. "\nAfter Mission: " .. currentAfterMission
             .. "\nAftermath: " .. currentAfterTimer .. "\nState: " .. timerState .. "\nFont: " .. timerFont .. "\nHidden Text: " .. tostring(currentVisibilityTimerText)
             .. "\nStart Sound: " .. timerStartSound .. "\nStop Sound: " .. timerStopSound .. "\nEnd Sound: " .. timerEndSound .. "\nFade-in Time: " .. math.Round(timerFadeInTime, 2)
-            .. "\nFade-out Time: " .. math.Round(timerFadeOutTime, 2) .. "\nText Realignment: " .. tostring(currentJustification) .. "\nEntity Hidden: " .. tostring(currentVisibilityEntity) .. "")
+            .. "\nFade-out Time: " .. math.Round(timerFadeOutTime, 2) .. "\nText Realignment: " .. tostring(currentJustification) .. "\nEntity Hidden: " .. tostring(currentVisibilityEntity)
+            .. "\nGradient Text Effect: " .. currentGradientTextEffect .. "\nGradient Text Speed: " .. math.Round(timerGradientSpeed, 2) .. "\nGradient Text Frequency: " .. math.Round(timerGradientFrequency, 1)
+            .. "\nGlitch Text Effect: " .. tostring(currentGlitchTextEffect) .. "\nGlitch Frequency: " .. math.Round(currentGlitchFrequency, 3))
         else
             print("Timer entity not found.")
         end
@@ -168,7 +175,7 @@ concommand.Add("simpletimerplus_getcurrenttime", function(ply, cmd, args)
     for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
         if IsValid(ent) then
             if ent:GetST_State() == 1 then
-                local remainingTime = math.max(ent:GetST_CurTime(), math.max(0, ent:GetST_Timer() - CurTime())) -- math.Round(math.max(0, ent:GetST_Timer() - CurTime()), 2)
+                local remainingTime = math.max(ent:GetST_CurTime(), math.max(0, ent:GetST_Timer() - CurTime())) -- math.Round(math.max(0, ent:GetST_Timer() - CurTime()), 2)??
                 print("Timer's current running time is: " .. remainingTime)
             else
                 print("Timer's current running time is: 0 (Timer is not currently running)")
@@ -711,6 +718,142 @@ concommand.Add("simpletimerplus_hideentity", function(ply, cmd, args)
     end
 end)
 
+concommand.Add("simpletimerplus_getgradienttexteffect", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerGradientTextEffect = ent:GetST_GradientTextEffect()
+            print("Timer gradient text effect is: " .. timerGradientTextEffect)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerGradientTextEffect
+end)
+
+concommand.Add("simpletimerplus_setgradienttexteffect", function(ply, cmd, args)
+    if #args == 1 then
+        local newGradientTextEffect = args[1]
+        for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+            if IsValid(ent) then
+                ent:SetST_GradientTextEffect(newGradientTextEffect)
+                print("Timer end sound set to: " .. newGradientTextEffect)
+            else
+                print("Timer entity not found.")
+            end
+        end
+    else
+        print("Usage: simpletimerplus_setgradienttexteffect <new_gradient_text_effect>  (0 = None, 1 = Duo-Gradient, 2 = Duo-Gradient Left to Right)")
+    end
+end)
+
+concommand.Add("simpletimerplus_getgradientspeed", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerGradientSpeed = ent:GetST_GradientSpeed()
+            print("Timer gradient speed is: " .. math.Round(timerGradientSpeed, 2))
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerGradientSpeed
+end)
+
+concommand.Add("simpletimerplus_setgradientspeed", function(ply, cmd, args)
+    if #args == 1 then
+        local gradientSpeed = tonumber(args[1])
+        if gradientSpeed and gradientSpeed >= 0.1 and gradientSpeed <= 3 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_GradientSpeed(gradientSpeed)
+                    print("Timer gradient speed set to: " .. gradientSpeed)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid gradient speed multiplier. Please provide a number between 0.1 and 3.")
+        end
+    else
+        print("Usage: simpletimerplus_setgradientspeed <new_gradient_speed_multiplier>")
+    end
+end)
+
+concommand.Add("simpletimerplus_getgradientfrequency", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerGradientFrequency = ent:GetST_GradientFrequency()
+            print("Timer gradient frequency is: " .. math.Round(timerGradientFrequency, 1))
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerGradientFrequency
+end)
+
+concommand.Add("simpletimerplus_setgradientfrequency", function(ply, cmd, args)
+    if #args == 1 then
+        local gradientFrequency = tonumber(args[1])
+        if gradientFrequency and gradientFrequency >= 1 and gradientFrequency <= 10 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_GradientFrequency(gradientFrequency)
+                    print("Timer gradient frequency set to: " .. gradientFrequency)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid gradient frequency multiplier. Please provide a number between 1 and 10.")
+        end
+    else
+        print("Usage: simpletimerplus_setgradientfrequency <new_gradient_frequency_multiplier>")
+    end
+end)
+
+concommand.Add("simpletimerplus_glitchtexteffect", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local glitchTextEffect = ent:GetST_GlitchTextEffect()
+            ent:SetST_GlitchTextEffect(not glitchTextEffect)
+            print("Timer glitch text effect toggled to be: " .. (not glitchTextEffect and "Enabled" or "Disabled"))
+        else
+            print("Timer entity not found.")
+        end
+    end
+end)
+
+concommand.Add("simpletimerplus_getglitchfrequency", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerGlitchFrequency = ent:GetST_GlitchFrequency()
+            print("Timer glitch frequency is: " .. math.Round(timerGlitchFrequency, 3))
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerGlitchFrequency
+end)
+
+concommand.Add("simpletimerplus_setglitchfrequency", function(ply, cmd, args)
+    if #args == 1 then
+        local glitchFrequency = tonumber(args[1])
+        if glitchFrequency and glitchFrequency >= 0.001 and glitchFrequency <= 0.1 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_GlitchFrequency(glitchFrequency)
+                    print("Timer glitch frequency set to: " .. glitchFrequency)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid glitch frequency multiplier. Please provide a number between 0.001 and 0.1")
+        end
+    else
+        print("Usage: simpletimerplus_setglitchfrequency <new_glitch_frequency_multiplier>")
+    end
+end)
+
 concommand.Add("simpletimerplus_getpresets", function(ply, cmd, args)
     if IsValid(ent) then
         print("Timer presets available: Default, PPHNS Start")
@@ -733,6 +876,7 @@ if SERVER then
                     if IsValid(ent) then
                         ent:SetST_Name("Hide and Seek")
                         ent:SetST_Color(Vector(1, 0, 0))
+                        ent:SetST_SecondColor(Vector(1, 0.22, 0.22))
                         ent:SetST_Time(600)
                         ent:SetST_CustomFont("Misery")
                         ent:SetST_FadeInTime(1)
@@ -741,6 +885,7 @@ if SERVER then
                         ent:SetST_StartSound(5)
                         ent:SetST_StopSound(4)
                         ent:SetST_EndSound(math.random(6, 9))
+                        ent:SetST_GradientTextEffect(2)
                         print("Timer values have been set successfully.")
                     else
                         print("Timer entity not found.")
