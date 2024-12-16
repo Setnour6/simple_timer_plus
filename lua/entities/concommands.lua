@@ -29,6 +29,7 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
         if IsValid(ent) then
             local timerName = ent:GetST_Name()
             local color = ent:GetST_Color()  local r = math.floor(color.x * 255)  local g = math.floor(color.y * 255)  local b = math.floor(color.z * 255)
+            local secondColor = ent:GetST_SecondColor()  local r2 = math.floor(secondColor.x * 255)  local g2 = math.floor(secondColor.y * 255)  local b2 = math.floor(secondColor.z * 255)
             local timerTime = ent:GetST_Time()
             local currentTimerTime = ent:GetST_CurTime()
             local currentVisibility = ent:GetST_HHud()
@@ -56,7 +57,7 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local timerGradientFrequency = ent:GetST_GradientFrequency()
             local currentGlitchTextEffect = ent:GetST_GlitchTextEffect()
             local currentGlitchFrequency = ent:GetST_GlitchFrequency()
-            print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nHUD Visibility: " .. tostring(currentVisibility)
+            print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nSecondary Color: RGB(" .. r2 .. ", " .. g2 .. ", " .. b2 .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nHUD Visibility: " .. tostring(currentVisibility)
             .. "\nSound Toggle: " .. tostring(currentVisibilitySound) .. "\nChat Message: " .. tostring(currentVisibilityChatText) .. "\nStart Event: " .. currentStartEvent .. "\nStop Event: " .. currentStopEvent
             .. "\nEnd Event: " .. currentEndEvent .. "\nMission: " .. tostring(currentMission) .. "\nMission Event: " .. currentMissionEvent .. "\nAfter Mission: " .. currentAfterMission
             .. "\nAftermath: " .. currentAfterTimer .. "\nState: " .. timerState .. "\nFont: " .. timerFont .. "\nHidden Text: " .. tostring(currentVisibilityTimerText)
@@ -108,7 +109,6 @@ concommand.Add("simpletimerplus_getcolor", function(ply, cmd, args)
             local b = math.Round(color.z * 255)
 
             print("Timer color is: RGB(" .. r .. ", " .. g .. ", " .. b .. ")")
-            timerFound = true
         else
             print("Timer entity not found.")
         end
@@ -136,6 +136,45 @@ concommand.Add("simpletimerplus_setcolor", function(ply, cmd, args)
         end
     else
         print("Usage: simpletimerplus_setcolor <r> <g> <b>")
+    end
+end)
+
+concommand.Add("simpletimerplus_getsecondcolor", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local secondColor = ent:GetST_SecondColor()
+            local r2 = math.Round(secondColor.x * 255)
+            local g2 = math.Round(secondColor.y * 255)
+            local b2 = math.Round(secondColor.z * 255)
+
+            print("Timer secondary color is: RGB(" .. r2 .. ", " .. g2 .. ", " .. b2 .. ")")
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return secondColor
+end)
+
+concommand.Add("simpletimerplus_setsecondcolor", function(ply, cmd, args)
+    if #args == 3 then
+        local r2 = tonumber(args[1])
+        local g2 = tonumber(args[2])
+        local b2 = tonumber(args[3])
+
+        if r2 >= 1 and r2 <= 255 and g2 >= 1 and g2 <= 255 and b2 >= 1 and b2 <= 255 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_SecondColor(Vector(r2 / 255, g2 / 255, b2 / 255))
+                    print("Timer secondary color set to: RGB(" .. r2 .. ", " .. g2 .. ", " .. b2 .. ")")
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid secondary color values. Please provide RGB values (0-255).")
+        end
+    else
+        print("Usage: simpletimerplus_setsecondcolor <r> <g> <b>")
     end
 end)
 
@@ -896,6 +935,7 @@ if SERVER then
                     if IsValid(ent) then
                         ent:SetST_Name("Simple Timer Plus")
                         ent:SetST_Color(Vector(0, 1, 1))
+                        ent:SetST_SecondColor(Vector(0, 1, 0))
                         ent:SetST_Time(60)
                         ent:SetST_HHud(false)
                         ent:SetST_HSnd(false)
@@ -914,6 +954,11 @@ if SERVER then
                         ent:SetST_ATimer(2)
                         ent:SetST_HideTimer(false)
                         ent:SetST_EntityHidden(false)
+                        ent:SetST_GradientTextEffect( 0 )
+                        ent:SetST_GradientSpeed( 0.65 )
+                        ent:SetST_GradientFrequency( 2 )
+                        ent:SetST_GlitchFrequency( 0.005 )
+                        ent:SetST_GlitchTextEffect( false )
                         print("Timer values have been set successfully.")
                     else
                         print("Timer entity not found.")

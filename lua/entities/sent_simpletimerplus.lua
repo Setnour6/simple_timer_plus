@@ -77,6 +77,7 @@ if CLIENT then
 		Timer = 0,
 		State = 0,
 		Color = Vector( 0, 0, 0 ),
+		SecondColor = Vector( 0, 0, 0 ),
 		Start = false,
 		LerpAlp = 0,
 		Static = "",
@@ -341,7 +342,8 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 	ent:SetST_CustomFont( "Tahoma" ) ent:SetST_FadeInTime ( 0.025 ) ent:SetST_FadeOutTime ( 0.05 )
 	ent:SetST_StartSound( 1 ) ent:SetST_StopSound( 2 ) ent:SetST_EndSound ( 3 )
 	ent:SetST_EStart( 0 ) ent:SetST_EStop( 0 ) ent:SetST_EEnd( 0 ) ent:SetST_Mission( 0 )
-	ent:SetST_AMission( 0 ) ent:SetST_ATimer( 2 ) ent:SetST_GlitchFrequency( 0.005 )
+	ent:SetST_AMission( 0 ) ent:SetST_ATimer( 2 ) ent:SetST_GlitchTextEffect( false )
+	ent:SetST_GlitchFrequency( 0.005 ) ent:SetST_GradientTextEffect( 0 )
 	ent:SetST_GradientSpeed( 0.65 ) ent:SetST_GradientFrequency( 2 )
 	table.insert(STIMER_ENTS, ent) return ent
 end
