@@ -32,6 +32,17 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local secondColor = ent:GetST_SecondColor()  local r2 = math.floor(secondColor.x * 255)  local g2 = math.floor(secondColor.y * 255)  local b2 = math.floor(secondColor.z * 255)
             local timerTime = ent:GetST_Time()
             local currentTimerTime = ent:GetST_CurTime()
+            local currentTimerPosX = ent:GetST_PosX()
+            local currentTimerPosY = ent:GetST_PosY()
+
+            local currentTBCornerRadius = ent:GetST_TBCornerRadius()
+            local currentTBPosX = ent:GetST_TBPosX()
+            local currentTBPosY = ent:GetST_TBPosY()
+            local currentTBWidth = ent:GetST_TBWidth()
+            local currentTBHeight = ent:GetST_TBHeight()
+            local tbColor = ent:GetST_TBColor()  local rtb = math.floor(tbColor.x * 255)  local gtb = math.floor(tbColor.y * 255)  local btb = math.floor(tbColor.z * 255)
+            local currentTBColorAlpha = ent:GetST_TBColorAlpha()
+
             local currentVisibility = ent:GetST_HHud()
             local currentVisibilitySound = ent:GetST_HSnd()
             local currentVisibilityChatText = ent:GetST_HNot()
@@ -46,6 +57,7 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local timerFont = ent:GetST_CustomFont()
             local currentVisibilityTimerText = ent:GetST_HideTimer()
             local timerStartSound = ent:GetST_StartSound()
+            local timerSecondStartSound = ent:GetST_SecondStartSound()
             local timerStopSound = ent:GetST_StopSound()
             local timerEndSound = ent:GetST_EndSound()
             local timerFadeInTime = ent:GetST_FadeInTime()
@@ -57,12 +69,16 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local timerGradientFrequency = ent:GetST_GradientFrequency()
             local currentGlitchTextEffect = ent:GetST_GlitchTextEffect()
             local currentGlitchFrequency = ent:GetST_GlitchFrequency()
-            print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nSecondary Color: RGB(" .. r2 .. ", " .. g2 .. ", " .. b2 .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nHUD Visibility: " .. tostring(currentVisibility)
-            .. "\nSound Toggle: " .. tostring(currentVisibilitySound) .. "\nChat Message: " .. tostring(currentVisibilityChatText) .. "\nStart Event: " .. currentStartEvent .. "\nStop Event: " .. currentStopEvent
+            print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nSecondary Color: RGB(" .. r2 .. ", " .. g2 .. ", " .. b2
+            .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nTimer Position Offset X: " .. currentTimerPosX .. "\nTimer Position Offset Y: " .. currentTimerPosY
+            .. "\nTextbox Corner Radius: " .. currentTBCornerRadius .. "\nTextbox Position Offset X: " .. currentTBPosX .. "\nTexbox Position Offset Y: " .. currentTBPosY
+            .. "\nTextbox Width: " .. currentTBWidth .. "\nTextbox Height: " .. currentTBHeight .. "\nTextbox Color: RGB(" .. rtb .. ", " .. gtb .. ", " .. btb .. ")\nTextbox Alpha: " .. currentTBColorAlpha
+            .. "\nHUD Visibility: " .. tostring(currentVisibility) .. "\nSound Toggle: " .. tostring(currentVisibilitySound) .. "\nChat Message: " .. tostring(currentVisibilityChatText)
+            .. "\nStart Event: " .. currentStartEvent .. "\nStop Event: " .. currentStopEvent
             .. "\nEnd Event: " .. currentEndEvent .. "\nMission: " .. tostring(currentMission) .. "\nMission Event: " .. currentMissionEvent .. "\nAfter Mission: " .. currentAfterMission
             .. "\nAftermath: " .. currentAfterTimer .. "\nState: " .. timerState .. "\nFont: " .. timerFont .. "\nHidden Text: " .. tostring(currentVisibilityTimerText)
-            .. "\nStart Sound: " .. timerStartSound .. "\nStop Sound: " .. timerStopSound .. "\nEnd Sound: " .. timerEndSound .. "\nFade-in Time: " .. math.Round(timerFadeInTime, 2)
-            .. "\nFade-out Time: " .. math.Round(timerFadeOutTime, 2) .. "\nText Realignment: " .. tostring(currentJustification) .. "\nEntity Hidden: " .. tostring(currentVisibilityEntity)
+            .. "\nStart Sound: " .. timerStartSound .. "\nSecond Start Sound: " .. timerSecondStartSound .. "\nStop Sound: " .. timerStopSound .. "\nEnd Sound: " .. timerEndSound
+            .. "\nFade-in Time: " .. math.Round(timerFadeInTime, 2) .. "\nFade-out Time: " .. math.Round(timerFadeOutTime, 2) .. "\nText Realignment: " .. tostring(currentJustification) .. "\nEntity Hidden: " .. tostring(currentVisibilityEntity)
             .. "\nGradient Text Effect: " .. currentGradientTextEffect .. "\nGradient Text Speed: " .. math.Round(timerGradientSpeed, 2) .. "\nGradient Text Frequency: " .. math.Round(timerGradientFrequency, 1)
             .. "\nGlitch Text Effect: " .. tostring(currentGlitchTextEffect) .. "\nGlitch Frequency: " .. math.Round(currentGlitchFrequency, 3))
         else
@@ -122,7 +138,7 @@ concommand.Add("simpletimerplus_setcolor", function(ply, cmd, args)
         local g = tonumber(args[2])
         local b = tonumber(args[3])
 
-        if r >= 1 and r <= 255 and g >= 1 and g <= 255 and b >= 1 and b <= 255 then
+        if r >= 0 and r <= 255 and g >= 0 and g <= 255 and b >= 0 and b <= 255 then
             for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
                 if IsValid(ent) then
                     ent:SetST_Color(Vector(r / 255, g / 255, b / 255))
@@ -161,7 +177,7 @@ concommand.Add("simpletimerplus_setsecondcolor", function(ply, cmd, args)
         local g2 = tonumber(args[2])
         local b2 = tonumber(args[3])
 
-        if r2 >= 1 and r2 <= 255 and g2 >= 1 and g2 <= 255 and b2 >= 1 and b2 <= 255 then
+        if r2 >= 0 and r2 <= 255 and g2 >= 0 and g2 <= 255 and b2 >= 0 and b2 <= 255 then
             for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
                 if IsValid(ent) then
                     ent:SetST_SecondColor(Vector(r2 / 255, g2 / 255, b2 / 255))
@@ -248,6 +264,301 @@ concommand.Add("simpletimerplus_setcurrenttime", function(ply, cmd, args)
         end
     else
         print("Usage: simpletimerplus_setcurrenttime <new_current_time_in_seconds>")
+    end
+end)
+
+concommand.Add("simpletimerplus_getposx", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerPosX = ent:GetST_PosX()
+            print("Timer's set position offset X is: " .. timerPosX)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerPosX
+end)
+
+concommand.Add("simpletimerplus_setposx", function(ply, cmd, args)
+    if #args == 1 then
+        local newPosX = tonumber(args[1])
+        if newPosX and newPosX >= -1920 and newPosX <= 1920 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_PosX(newPosX)
+                    print("Timer position offset X set to: " .. newPosX)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid position offset X. Please provide a number between -1920 and 1920.")
+        end
+    else
+        print("Usage: simpletimerplus_setposx <new_position_offset_x>")
+    end
+end)
+
+concommand.Add("simpletimerplus_getposy", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerPosY = ent:GetST_PosY()
+            print("Timer's set position offset Y is: " .. timerPosY)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerPosY
+end)
+
+concommand.Add("simpletimerplus_setposy", function(ply, cmd, args)
+    if #args == 1 then
+        local newPosY = tonumber(args[1])
+        if newPosY and newPosY >= -1080 and newPosY <= 1080 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_PosY(newPosY)
+                    print("Timer position offset Y set to: " .. newPosY)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid position offset Y. Please provide a number between -1080 and 1080.")
+        end
+    else
+        print("Usage: simpletimerplus_setposy <new_position_offset_y>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbcornerradius", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTBCornerRadius = ent:GetST_TBCornerRadius()
+            print("Timer's set textbox corner radius is: " .. timerTBCornerRadius)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTBCornerRadius
+end)
+
+concommand.Add("simpletimerplus_settbcornerradius", function(ply, cmd, args)
+    if #args == 1 then
+        local newTBCornerRadius = tonumber(args[1])
+        if newTBCornerRadius and newTBCornerRadius >= 0 and newTBCornerRadius <= 200 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBCornerRadius(newTBCornerRadius)
+                    print("Timer textbox corner radius set to: " .. newTBCornerRadius)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox corner radius. Please provide a number between 0 and 200.")
+        end
+    else
+        print("Usage: simpletimerplus_settbcornerradius <new_textbox_corner_radius>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbposx", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTBPosX = ent:GetST_TBPosX()
+            print("Timer's set textbox position offset X is: " .. timerTBPosX)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTBPosX
+end)
+
+concommand.Add("simpletimerplus_settbposx", function(ply, cmd, args)
+    if #args == 1 then
+        local newTBPosX = tonumber(args[1])
+        if newTBPosX and newTBPosX >= -1920 and newTBPosX <= 1920 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBPosX(newTBPosX)
+                    print("Timer textbox position offset X set to: " .. newTBPosX)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox position offset X. Please provide a number between -1920 and 1920.")
+        end
+    else
+        print("Usage: simpletimerplus_settbposx <new_textbox_position_offset_x>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbposy", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTBPosY = ent:GetST_TBPosY()
+            print("Timer's set textbox position offset Y is: " .. timerTBPosY)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTBPosY
+end)
+
+concommand.Add("simpletimerplus_settbposy", function(ply, cmd, args)
+    if #args == 1 then
+        local newTBPosY = tonumber(args[1])
+        if newTBPosY and newTBPosY >= -1080 and newTBPosY <= 1080 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBPosY(newTBPosY)
+                    print("Timer textbox position offset Y set to: " .. newTBPosY)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox position offset Y. Please provide a number between -1080 and 1080.")
+        end
+    else
+        print("Usage: simpletimerplus_settbposy <new_textbox_position_offset_y>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbwidth", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTBWidth = ent:GetST_TBWidth()
+            print("Timer's set textbox width is: " .. timerTBWidth)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTBWidth
+end)
+
+concommand.Add("simpletimerplus_settbwidth", function(ply, cmd, args)
+    if #args == 1 then
+        local newTBWidth = tonumber(args[1])
+        if newTBWidth and newTBWidth >= 0 and newTBWidth <= 1920 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBWidth(newTBWidth)
+                    print("Timer textbox width set to: " .. newTBWidth)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox width. Please provide a number between 0 and 1920.")
+        end
+    else
+        print("Usage: simpletimerplus_settbwidth <new_textbox_width>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbheight", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTBHeight = ent:GetST_TBHeight()
+            print("Timer's set texbox height is: " .. timerTBHeight)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTBHeight
+end)
+
+concommand.Add("simpletimerplus_settbheight", function(ply, cmd, args)
+    if #args == 1 then
+        local newTBHeight = tonumber(args[1])
+        if newTBHeight and newTBHeight >= 0 and newTBHeight <= 1080 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBHeight(newTBHeight)
+                    print("Timer textbox height set to: " .. newTBHeight)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox height. Please provide a number between 0 and 1080.")
+        end
+    else
+        print("Usage: simpletimerplus_settbheight <new_textbox_height>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbcolor", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local tbColor = ent:GetST_TBColor()
+            local rtb = math.Round(tbColor.x * 255)
+            local gtb = math.Round(tbColor.y * 255)
+            local btb = math.Round(tbColor.z * 255)
+
+            print("Timer textbox color is: RGB(" .. rtb .. ", " .. gtb .. ", " .. btb .. ")")
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return tbColor
+end)
+
+concommand.Add("simpletimerplus_settbcolor", function(ply, cmd, args)
+    if #args == 3 then
+        local rtb = tonumber(args[1])
+        local gtb = tonumber(args[2])
+        local btb = tonumber(args[3])
+
+        if rtb >= 0 and rtb <= 255 and gtb >= 0 and gtb <= 255 and btb >= 0 and btb <= 255 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBColor(Vector(rtb / 255, gtb / 255, btb / 255))
+                    print("Timer textbox color set to: RGB(" .. rtb .. ", " .. gtb .. ", " .. btb .. ")")
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox color values. Please provide RGB values (0-255).")
+        end
+    else
+        print("Usage: simpletimerplus_settbcolor <r> <g> <b>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettbcoloralpha", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTBColorAlpha = ent:GetST_TBColorAlpha()
+            print("Timer's set texbox color alpha is: " .. timerTBColorAlpha)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTBColorAlpha
+end)
+
+concommand.Add("simpletimerplus_settbcoloralpha", function(ply, cmd, args)
+    if #args == 1 then
+        local newTBColorAlpha = tonumber(args[1])
+        if newTBColorAlpha and newTBColorAlpha >= 0 and newTBColorAlpha <= 255 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TBColorAlpha(newTBColorAlpha)
+                    print("Timer textbox color alpha set to: " .. newTBColorAlpha)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid textbox color alpha. Please provide a number between 0 and 255.")
+        end
+    else
+        print("Usage: simpletimerplus_settbcoloralpha <new_textbox_color_alpha>")
     end
 end)
 
@@ -613,6 +924,34 @@ concommand.Add("simpletimerplus_setstartsound", function(ply, cmd, args)
     end
 end)
 
+concommand.Add("simpletimerplus_getsecondstartsound", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerSecondStartSound = ent:GetST_SecondStartSound()
+            print("Timer secondary start sound is: " .. timerSecondStartSound)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerSecondStartSound
+end)
+
+concommand.Add("simpletimerplus_setsecondstartsound", function(ply, cmd, args)
+    if #args == 1 then
+        local newSecondSound = args[1]
+        for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+            if IsValid(ent) then
+                ent:SetST_SecondStartSound(newSecondSound)
+                print("Timer secondary start sound set to: " .. newSecondSound)
+            else
+                print("Timer entity not found.")
+            end
+        end
+    else
+        print("Usage: simpletimerplus_setsecondstartsound <new_start_sound> (0 = No Sound, 1 = Tattletail Round Start)")
+    end
+end)
+
 concommand.Add("simpletimerplus_getstopsound", function(ply, cmd, args)
     for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
         if IsValid(ent) then
@@ -917,14 +1256,30 @@ if SERVER then
                         ent:SetST_Color(Vector(1, 0, 0))
                         ent:SetST_SecondColor(Vector(1, 0.22, 0.22))
                         ent:SetST_Time(600)
+                        ent:SetST_PosX(0)
+                        ent:SetST_PosY(0)
+                        ent:SetST_TBCornerRadius(0)
+                        ent:SetST_TBPosX(0)
+                        ent:SetST_TBPosY(-50)
+                        ent:SetST_TBWidth(400)
+                        ent:SetST_TBHeight(150)
+                        ent:SetST_TBColor(Vector(0, 0, 0))
+                        ent:SetST_TBColorAlpha(150)
+                        ent:SetST_HHud(false)
+                        ent:SetST_HSnd(false)
+                        ent:SetST_HNot(true)
                         ent:SetST_CustomFont("Misery")
                         ent:SetST_FadeInTime(1)
                         ent:SetST_FadeOutTime(0)
                         ent:SetST_JustifyText(true)
                         ent:SetST_StartSound(5)
+                        ent:SetST_SecondStartSound(0)
                         ent:SetST_StopSound(4)
                         ent:SetST_EndSound(math.random(6, 9))
                         ent:SetST_GradientTextEffect(2)
+                        ent:SetST_GradientSpeed( 1 )
+                        ent:SetST_GradientFrequency( 2 )
+                        ent:SetST_GlitchTextEffect( false )
                         print("Timer values have been set successfully.")
                     else
                         print("Timer entity not found.")
@@ -937,6 +1292,15 @@ if SERVER then
                         ent:SetST_Color(Vector(0, 1, 1))
                         ent:SetST_SecondColor(Vector(0, 1, 0))
                         ent:SetST_Time(60)
+                        ent:SetST_PosX(0)
+                        ent:SetST_PosY(0)
+                        ent:SetST_TBCornerRadius(8)
+                        ent:SetST_TBPosX(0)
+                        ent:SetST_TBPosY(0)
+                        ent:SetST_TBWidth(400)
+                        ent:SetST_TBHeight(100)
+                        ent:SetST_TBColor(Vector(0, 0, 0))
+                        ent:SetST_TBColorAlpha(150)
                         ent:SetST_HHud(false)
                         ent:SetST_HSnd(false)
                         ent:SetST_HNot(true)
@@ -944,6 +1308,7 @@ if SERVER then
                         ent:SetST_FadeInTime(0.025)
                         ent:SetST_FadeOutTime(0.05)
                         ent:SetST_StartSound(1)
+                        ent:SetST_SecondStartSound(0)
                         ent:SetST_StopSound(2)
                         ent:SetST_EndSound(3)
                         ent:SetST_EStart(0)

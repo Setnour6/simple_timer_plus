@@ -82,6 +82,7 @@ if CLIENT then
 		State = 0,
 		Color = Vector( 0, 0, 0 ),
 		SecondColor = Vector( 0, 0, 0 ),
+		TBColor = Vector( 0, 0, 0 ),
 		Start = false,
 		LerpAlp = 0,
 		Static = "",
@@ -95,6 +96,7 @@ if CLIENT then
 		FadeOutTime = 0.025,
 		EntityHidden = false,
 		GlitchTextEffect = false,
+		GradientTextEffect = false,
 	}
 	resource.AddFile("resource/fonts/Misery.ttf")
 	resource.AddFile("resource/fonts/CHILLER.TTF")
@@ -125,7 +127,8 @@ if CLIENT then
 			local ww, hh = ScrW() / 2, ScrH() / 2
 			local col = Color(STIMER_.Color.r * 255, STIMER_.Color.g * 255, STIMER_.Color.b * 255, STIMER_.LerpAlp * 255)
 			local secondCol = Color(STIMER_.SecondColor.r * 255, STIMER_.SecondColor.g * 255, STIMER_.SecondColor.b * 255, STIMER_.LerpAlp * 255)
-			draw.RoundedBox(8, ww - 200, 20, 400, 100, Color(0, 0, 0, 150 * STIMER_.LerpAlp))
+			local tbCol = Color(STIMER_.TBColor.r * 255, STIMER_.TBColor.g * 255, STIMER_.TBColor.b * 255, STIMER_.LerpAlp * STIMER_.TBColorAlpha)
+			draw.RoundedBox(STIMER_.TBCornerRadius, ww - 200 + STIMER_.TBPosX, 20 + STIMER_.TBPosY, STIMER_.TBWidth /*400*/, STIMER_.TBHeight /*100*/, tbCol /*Color(0, 0, 0, 150 * STIMER_.LerpAlp)*/)
 
 			local function DrawGradientText(text, pos, font, color1, color2, xalign)
 				surface.SetFont(font)
@@ -214,9 +217,9 @@ if CLIENT then
 			local offset = fontOffsets[STIMER_.CustomFont] or fontOffsets.Default
 
 			if STIMER_.GradientTextEffect != 0 then
-				DrawGradientText(STIMER_.Name, {ww, hh_cf}, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font1" or "CourierNew_Font1", col, secondCol, TEXT_ALIGN_CENTER)
+				DrawGradientText(STIMER_.Name, {ww + STIMER_.PosX, hh_cf + STIMER_.PosY}, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font1" or "CourierNew_Font1", col, secondCol, TEXT_ALIGN_CENTER)
 			else
-				draw.TextShadow({ text = STIMER_.Name, pos = { ww, hh_cf },
+				draw.TextShadow({ text = STIMER_.Name, pos = { ww + STIMER_.PosX, hh_cf + STIMER_.PosY },
 					font = STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font1" or "CourierNew_Font1", xalign = TEXT_ALIGN_CENTER,
 					yalign = TEXT_ALIGN_DOWN, color = col }, 1, STIMER_.LerpAlp * 255)
 			end
@@ -241,9 +244,9 @@ if CLIENT then
 				end
 
 				if STIMER_.GradientTextEffect != 0 then
-					DrawGradientText(tx, {ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x), offset.y}, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", col, secondCol, offset.justify)
+					DrawGradientText(tx, {ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.PosX, offset.y + STIMER_.PosY }, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", col, secondCol, offset.justify)
 				else
-					draw.TextShadow({ text = tx, pos = { ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x), offset.y },
+					draw.TextShadow({ text = tx, pos = { ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.PosX, offset.y + STIMER_.PosY },
 						font = STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", xalign = offset.justify,
 						yalign = TEXT_ALIGN_DOWN, color = col }, 1, STIMER_.LerpAlp * 255)
 				end
@@ -349,39 +352,56 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 	ent:SetST_AMission( 0 ) ent:SetST_ATimer( 2 ) ent:SetST_GlitchTextEffect( false )
 	ent:SetST_GlitchFrequency( 0.005 ) ent:SetST_GradientTextEffect( 0 ) ent:SetST_GradientSpeed( 0.65 )
 	ent:SetST_GradientFrequency( 2 )
+	ent:SetST_JustifyText( false ) ent:SetST_TBCornerRadius( 8 ) ent:SetST_TBPosX( 0 ) ent:SetST_TBPosY( 0 )
+	ent:SetST_TBWidth( 400 ) ent:SetST_TBHeight( 100 ) ent:SetST_TBColor( Vector(0, 0, 0) ) ent:SetST_TBColorAlpha( 150 )
+	ent:SetST_PosX ( 0 ) ent:SetST_PosY( 0 )
 	table.insert(STIMER_ENTS, ent) return ent
 end
 function ENT:SetupDataTables()
+	-- main
 	self:NetworkVar( "String", 0, "ST_Name", { KeyName = "stname", Edit = { title = "Timer Name", category = "Main", type = "String", order = 0 } } )
 	self:NetworkVar( "Vector", 0, "ST_Color", { KeyName = "stcolor", Edit = { title = "Timer Color", category = "Main", type = "VectorColor", order = 1 } } )
 	self:NetworkVar( "Vector", 1, "ST_SecondColor", { KeyName = "stsecondcolor", Edit = { title = "Timer Secondary Color (For Text Effects)", category = "Main", type = "VectorColor", order = 2 } })
-	self:NetworkVar( "Int", 0, "ST_Time", { KeyName = "sttime", Edit = { title = "Time", category = "Main", type = "Int", min = 1, max = 3600, order = 4 } } )
-	self:NetworkVar( "Bool", 0, "ST_HHud", { KeyName = "sthhud", Edit = { title = "No HUD", category = "Hide", type = "Bool", order = 5 } } )
-	self:NetworkVar( "Bool", 1, "ST_HSnd", { KeyName = "sthsnd", Edit = { title = "No Sound", category = "Hide", type = "Bool", order = 6 } } )
-	self:NetworkVar( "Bool", 2, "ST_HNot", { KeyName = "sthnot", Edit = { title = "No Text", category = "Hide", type = "Bool", order = 7 } } )
-	self:NetworkVar( "Int", 1, "ST_EStart", { KeyName = "stestart", Edit = { title = "Start Event", category = "Events", type = "Combo", values = STIMER_EVENTS, order = 8 } } )
-	self:NetworkVar( "Int", 2, "ST_EStop", { KeyName = "stestop", Edit = { title = "Stop Event", category = "Events", type = "Combo", values = STIMER_EVENTS, order = 9 } } )
-	self:NetworkVar( "Int", 3, "ST_EEnd", { KeyName = "steend", Edit = { title = "End Event", category = "Events", type = "Combo", values = STIMER_EVENTS, order = 10 } } )
-	self:NetworkVar( "Int", 4, "ST_Mission", { KeyName = "stmission", Edit = { title = "Mission", category = "Mission", type = "Combo", values = STIMER_EVENT2, order = 11 } } )
-	self:NetworkVar( "Int", 5, "ST_MEvent", { KeyName = "stmevent", Edit = { title = "Mission Event", category = "Mission", type = "Combo", values = STIMER_EVENTS, order = 12 } } )
-	self:NetworkVar( "Int", 6, "ST_AMission", { KeyName = "stamission", Edit = { title = "After Mission", category = "Aftermath", type = "Combo", values = STIMER_EVENT3, order = 13 } } )
-	self:NetworkVar( "Int", 7, "ST_ATimer", { KeyName = "statimer", Edit = { title = "After Timer", category = "Aftermath", type = "Combo", values = STIMER_EVENT4, order = 14 } } )
+	self:NetworkVar( "Int", 0, "ST_Time", { KeyName = "sttime", Edit = { title = "Time", category = "Main", type = "Int", min = 1, max = 3600, order = 3 } } )
+	self:NetworkVar( "Int", 14, "ST_PosX", { KeyName = "stposx", Edit = { title = "Timer Position Offset X", category = "Main", type = "Int", min = -1920, max = 1920, order = 4 } })
+	self:NetworkVar( "Int", 15, "ST_PosY", { KeyName = "stposy", Edit = { title = "Timer Position Offset Y", category = "Main", type = "Int", min = -1080, max = 1080, order = 5 } })
+	-- text box
+	self:NetworkVar( "Int", 16, "ST_TBCornerRadius", { KeyName = "sttbcornereadius", Edit = { title = "Textbox Corner Radius", category = "Text Box", type = "Int", min = 0, max = 200, order = 6 } })
+	self:NetworkVar( "Int", 17, "ST_TBPosX", { KeyName = "sttbposx", Edit = { title = "Textbox Position Offset X", category = "Text Box", type = "Int", min = -1920, max = /*ScrW()*/1920, order = 7 } })
+	self:NetworkVar( "Int", 18, "ST_TBPosY", { KeyName = "sttbposy", Edit = { title = "Textbox Position Offset Y", category = "Text Box", type = "Int", min = -1080, max = /*ScrH()*/1080, order = 8 } })
+	self:NetworkVar( "Int", 19, "ST_TBWidth", { KeyName = "sttbwidth", Edit = { title = "Textbox Width", category = "Text Box", type = "Int", min = 0, max = 1920, order = 9 } })
+	self:NetworkVar( "Int", 20, "ST_TBHeight", { KeyName = "sttbheight", Edit = { title = "Textbox Height", category = "Text Box", type = "Int", min = 0, max = 1080, order = 10 } })
+	self:NetworkVar( "Vector", 2, "ST_TBColor", { KeyName = "sttbcolor", Edit = { title = "Textbox Color", category = "Text Box", type = "VectorColor", order = 11 } })
+	self:NetworkVar( "Int", 21, "ST_TBColorAlpha", { KeyName = "sttbcoloralpha", Edit = { title = "Textbox Color Alpha", category = "Text Box", type = "Int", min = 0, max = 255, order = 12 } })
+	-- hiding
+	self:NetworkVar( "Bool", 0, "ST_HHud", { KeyName = "sthhud", Edit = { title = "No HUD (Hide All UI)", category = "Hide", type = "Bool", order = 13 } } )
+	self:NetworkVar( "Bool", 1, "ST_HSnd", { KeyName = "sthsnd", Edit = { title = "No Sound", category = "Hide", type = "Bool", order = 14 } } )
+	self:NetworkVar( "Bool", 2, "ST_HNot", { KeyName = "sthnot", Edit = { title = "No Text", category = "Hide", type = "Bool", order = 15 } } )
+	self:NetworkVar( "Bool", 3, "ST_HideTimer", { KeyName = "sthidetimer", Edit = { title = "No Timer", category = "Hide", type = "Bool", order = 16 } } )
+	self:NetworkVar( "Bool", 4, "ST_EntityHidden", { KeyName = "stentityhidden", Edit = { title = "Hide Entity", category = "Hide", type = "Bool", order = 17 } })
+	-- events & mission
+	self:NetworkVar( "Int", 1, "ST_EStart", { KeyName = "stestart", Edit = { title = "Start Event", category = "Events", type = "Combo", values = STIMER_EVENTS, order = 18 } } )
+	self:NetworkVar( "Int", 2, "ST_EStop", { KeyName = "stestop", Edit = { title = "Stop Event", category = "Events", type = "Combo", values = STIMER_EVENTS, order = 19 } } )
+	self:NetworkVar( "Int", 3, "ST_EEnd", { KeyName = "steend", Edit = { title = "End Event", category = "Events", type = "Combo", values = STIMER_EVENTS, order = 20 } } )
+	self:NetworkVar( "Int", 4, "ST_Mission", { KeyName = "stmission", Edit = { title = "Mission", category = "Mission", type = "Combo", values = STIMER_EVENT2, order = 21 } } )
+	self:NetworkVar( "Int", 5, "ST_MEvent", { KeyName = "stmevent", Edit = { title = "Mission Event", category = "Mission", type = "Combo", values = STIMER_EVENTS, order = 22 } } )
+	self:NetworkVar( "Int", 6, "ST_AMission", { KeyName = "stamission", Edit = { title = "After Mission", category = "Aftermath", type = "Combo", values = STIMER_EVENT3, order = 23 } } )
+	self:NetworkVar( "Int", 7, "ST_ATimer", { KeyName = "statimer", Edit = { title = "After Timer", category = "Aftermath", type = "Combo", values = STIMER_EVENT4, order = 24 } } )
 	self:NetworkVar( "Int", 8, "ST_State" ) self:NetworkVar( "Float", 0, "ST_Timer" ) self:NetworkVar( "Float", 1, "ST_NextUse" )
-	self:NetworkVar( "String", 1, "ST_CustomFont", { KeyName = "stcustomfont", Edit = { title = "Custom Font", category = "Main", type = "Combo", values = STIMER_FONTS, order = 15 } })
-	self:NetworkVar( "Bool", 3, "ST_HideTimer", { KeyName = "sthidetimer", Edit = { title = "Hide Timer", category = "Main", type = "Bool", order = 16 } } )
-	self:NetworkVar( "Int", 9, "ST_StartSound", { KeyName = "ststartsound", Edit = { title = "Start Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS, order = 17 } } )
-	self:NetworkVar( "Int", 10, "ST_SecondStartSound", { KeyName = "stsecondstartsound", Edit = { title = "Secondary Start Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS2, order = 18 } } )
-	self:NetworkVar( "Int", 11, "ST_StopSound", { KeyName = "ststopsound", Edit = { title = "Stop Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS, order = 19 } } )
-	self:NetworkVar( "Int", 12, "ST_EndSound", { KeyName = "stendsound", Edit = { title = "End Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS, order = 20 } } )
-	self:NetworkVar( "Float", 2, "ST_FadeInTime", { KeyName = "stfadeintime", Edit = { title = "Fade In Time", category = "Main", type = "Float", min = 0, max = 1, order = 21 } } )
-	self:NetworkVar( "Float", 3, "ST_FadeOutTime", { KeyName = "stfadeouttime", Edit = { title = "Fade Out Time", category = "Main", type = "Float", min = 0, max = 1, order = 22 } } )
-	self:NetworkVar( "Bool", 4, "ST_JustifyText", { KeyName = "stjustifytext", Edit = { title = "Realign Timer (Some Fonts Only)", category = "Main", type = "Bool", order = 23 } })
-	self:NetworkVar( "Bool", 5, "ST_EntityHidden", { KeyName = "stentityhidden", Edit = { title = "Hide Entity", category = "Main", type = "Bool", order = 24 } })
-	self:NetworkVar( "Int", 13, "ST_GradientTextEffect", { KeyName = "stgradienttexteffect", Edit = { title = "Gradient Text Effect", category = "Text Effects", type = "Combo", values = STIMER_TEXT_EFFECTS, order = 25 } })
-	self:NetworkVar( "Float", 4, "ST_GradientSpeed", { KeyName = "stgradientspeed", Edit = { title = "Gradient Speed", category = "Text Effects", type = "Float", min = 0.1, max = 3, order = 26 } })
-	self:NetworkVar( "Float", 5, "ST_GradientFrequency", { KeyName = "stgradientfrequency", Edit = { title = "Gradient Frequency", category = "Text Effects", type = "Float", min = 1, max = 10, order = 27 } })
-	self:NetworkVar( "Bool", 6, "ST_GlitchTextEffect", { KeyName = "stglitchtexteffect", Edit = { title = "Glitch Text Effect", category = "Text Effects", type = "Bool", order = 28 } } )
-	self:NetworkVar( "Float", 6, "ST_GlitchFrequency", { KeyName = "stglitchfrequency", Edit = { title = "Glitch Frequency", category = "Text Effects", type = "Float", min = 0.001, max = 0.10, order = 29 } } )
+	-- etc
+	self:NetworkVar( "String", 1, "ST_CustomFont", { KeyName = "stcustomfont", Edit = { title = "Custom Font", category = "Main", type = "Combo", values = STIMER_FONTS, order = 25 } })
+	self:NetworkVar( "Int", 9, "ST_StartSound", { KeyName = "ststartsound", Edit = { title = "Start Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS, order = 26 } } )
+	self:NetworkVar( "Int", 10, "ST_SecondStartSound", { KeyName = "stsecondstartsound", Edit = { title = "Secondary Start Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS2, order = 27 } } )
+	self:NetworkVar( "Int", 11, "ST_StopSound", { KeyName = "ststopsound", Edit = { title = "Stop Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS, order = 28 } } )
+	self:NetworkVar( "Int", 12, "ST_EndSound", { KeyName = "stendsound", Edit = { title = "End Sound", category = "Sound", type = "Combo", values = STIMER_SOUNDS, order = 29 } } )
+	self:NetworkVar( "Float", 2, "ST_FadeInTime", { KeyName = "stfadeintime", Edit = { title = "Fade In Time", category = "Main", type = "Float", min = 0, max = 1, order = 30 } } )
+	self:NetworkVar( "Float", 3, "ST_FadeOutTime", { KeyName = "stfadeouttime", Edit = { title = "Fade Out Time", category = "Main", type = "Float", min = 0, max = 1, order = 31 } } )
+	self:NetworkVar( "Bool", 5, "ST_JustifyText", { KeyName = "stjustifytext", Edit = { title = "Realign Timer (Some Fonts Only)", category = "Main", type = "Bool", order = 32 } })
+	self:NetworkVar( "Int", 13, "ST_GradientTextEffect", { KeyName = "stgradienttexteffect", Edit = { title = "Gradient Text Effect", category = "Text Effects", type = "Combo", values = STIMER_TEXT_EFFECTS, order = 33 } })
+	self:NetworkVar( "Float", 4, "ST_GradientSpeed", { KeyName = "stgradientspeed", Edit = { title = "Gradient Speed", category = "Text Effects", type = "Float", min = 0.1, max = 3, order = 34 } })
+	self:NetworkVar( "Float", 5, "ST_GradientFrequency", { KeyName = "stgradientfrequency", Edit = { title = "Gradient Frequency", category = "Text Effects", type = "Float", min = 1, max = 10, order = 35 } })
+	self:NetworkVar( "Bool", 6, "ST_GlitchTextEffect", { KeyName = "stglitchtexteffect", Edit = { title = "Glitch Text Effect", category = "Text Effects", type = "Bool", order = 36 } } )
+	self:NetworkVar( "Float", 6, "ST_GlitchFrequency", { KeyName = "stglitchfrequency", Edit = { title = "Glitch Frequency", category = "Text Effects", type = "Float", min = 0.001, max = 0.10, order = 37 } } )
 	self:NetworkVar( "Float", 12, "ST_CurTime" )
 	self:SetST_State( 0 ) self:SetST_Timer( 0 ) self:SetST_NextUse( 0 ) self:SetST_CurTime(math.Round(math.max(0, self:GetST_Timer() - CurTime()), 2))
 	if SERVER then
@@ -471,7 +491,10 @@ function ENT:Think()
 		STIMER_.JustifyText = self:GetST_JustifyText()  STIMER_.EntityHidden = self:GetST_EntityHidden()
 		STIMER_.GradientTextEffect = self:GetST_GradientTextEffect() STIMER_.GlitchTextEffect = self:GetST_GlitchTextEffect()
 		STIMER_.GlitchFrequency = self:GetST_GlitchFrequency()  STIMER_.GradientSpeed = self:GetST_GradientSpeed()
-		STIMER_.GradientFrequency = self:GetST_GradientFrequency()
+		STIMER_.GradientFrequency = self:GetST_GradientFrequency()  STIMER_.TBCornerRadius = self:GetST_TBCornerRadius()
+		STIMER_.TBPosX = self:GetST_TBPosX() STIMER_.TBPosY = self:GetST_TBPosY() STIMER_.TBWidth = self:GetST_TBWidth() STIMER_.TBHeight = self:GetST_TBHeight()
+		STIMER_.TBColor = self:GetST_TBColor()  STIMER_.TBColorAlpha = self:GetST_TBColorAlpha()
+		STIMER_.PosX = self:GetST_PosX() STIMER_.PosY = self:GetST_PosY()
 
 		if STIMER_.StartSound == 1 then STIMER_.StartSound = "ambient/alarms/warningbell1.wav"
 			elseif STIMER_.StartSound == 2 then STIMER_.StartSound = "ambient/levels/canals/windchime2.wav"
