@@ -34,6 +34,9 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local currentTimerTime = ent:GetST_CurTime()
             local currentTimerPosX = ent:GetST_PosX()
             local currentTimerPosY = ent:GetST_PosY()
+            local currentTimerTimePosX = ent:GetST_TimePosX()
+            local currentTimerTimePosY = ent:GetST_TimePosY()
+            local currentTimerPosXYSync = ent:GetST_PosXYSync()
 
             local currentTBCornerRadius = ent:GetST_TBCornerRadius()
             local currentTBPosX = ent:GetST_TBPosX()
@@ -53,6 +56,7 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local currentMissionEvent = ent:GetST_MEvent()
             local currentAfterMission = ent:GetST_AMission()
             local currentAfterTimer = ent:GetST_ATimer()
+
             local timerState = ent:GetST_ATimer()
             local timerFont = ent:GetST_CustomFont()
             local currentVisibilityTimerText = ent:GetST_HideTimer()
@@ -71,6 +75,7 @@ concommand.Add("simpletimerplus_getinfo", function(ply, cmd, args)
             local currentGlitchFrequency = ent:GetST_GlitchFrequency()
             print("Name: " .. timerName .. " \nColor: RGB(" .. r .. ", " .. g .. ", " .. b .. ")\nSecondary Color: RGB(" .. r2 .. ", " .. g2 .. ", " .. b2
             .. ")\nTime: " .. timerTime .. "\nCurrent Time: " .. math.Round(currentTimerTime, 2) .. "\nTimer Position Offset X: " .. currentTimerPosX .. "\nTimer Position Offset Y: " .. currentTimerPosY
+            .. "\nTimer Time Position Offset X: " .. currentTimerTimePosX .. "\nTimer Time Position Offset Y: " .. currentTimerTimePosY .. "\nTimer Position X-Y Sync: " .. tostring(currentTimerPosXYSync)
             .. "\nTextbox Corner Radius: " .. currentTBCornerRadius .. "\nTextbox Position Offset X: " .. currentTBPosX .. "\nTexbox Position Offset Y: " .. currentTBPosY
             .. "\nTextbox Width: " .. currentTBWidth .. "\nTextbox Height: " .. currentTBHeight .. "\nTextbox Color: RGB(" .. rtb .. ", " .. gtb .. ", " .. btb .. ")\nTextbox Alpha: " .. currentTBColorAlpha
             .. "\nHUD Visibility: " .. tostring(currentVisibility) .. "\nSound Toggle: " .. tostring(currentVisibilitySound) .. "\nChat Message: " .. tostring(currentVisibilityChatText)
@@ -328,6 +333,82 @@ concommand.Add("simpletimerplus_setposy", function(ply, cmd, args)
         end
     else
         print("Usage: simpletimerplus_setposy <new_position_offset_y>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettimeposx", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTimePosX = ent:GetST_TimePosX()
+            print("Timer's time set position offset X is: " .. timerTimePosX)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTimePosX
+end)
+
+concommand.Add("simpletimerplus_settimeposx", function(ply, cmd, args)
+    if #args == 1 then
+        local newTimePosX = tonumber(args[1])
+        if newTimePosX and newTimePosX >= -1920 and newTimePosX <= 1920 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_TimePosX(newTimePosX)
+                    print("Timer time position offset X set to: " .. newTimePosX)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid position offset X. Please provide a number between -1920 and 1920.")
+        end
+    else
+        print("Usage: simpletimerplus_settimeposx <new_time_position_offset_x>")
+    end
+end)
+
+concommand.Add("simpletimerplus_gettimeposy", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local timerTimePosY = ent:GetST_TimePosY()
+            print("Timer's time set position offset Y is: " .. timerTimePosY)
+        else
+            print("Timer entity not found.")
+        end
+    end
+    return timerTimePosY
+end)
+
+concommand.Add("simpletimerplus_settimeposy", function(ply, cmd, args)
+    if #args == 1 then
+        local newTimePosY = tonumber(args[1])
+        if newTimePosY and newTimePosY >= -1080 and newTimePosY <= 1080 then
+            for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+                if IsValid(ent) then
+                    ent:SetST_PosY(newTimePosY)
+                    print("Timer time position offset Y set to: " .. newTimePosY)
+                else
+                    print("Timer entity not found.")
+                end
+            end
+        else
+            print("Invalid position offset Y. Please provide a number between -1080 and 1080.")
+        end
+    else
+        print("Usage: simpletimerplus_settimeposy <new_time_position_offset_y>")
+    end
+end)
+
+concommand.Add("simpletimerplus_posxysync", function(ply, cmd, args)
+    for _, ent in pairs(ents.FindByClass("sent_simpletimerplus")) do
+        if IsValid(ent) then
+            local currentPosXYSync = ent:GetST_PosXYSync()
+            ent:SetST_PosXYSync(not currentPosXYSync)
+            print("Timer Position Sync toggled to: " .. (not currentPosXYSync and "Enabled" or "Disabled"))
+        else
+            print("Timer entity not found.")
+        end
     end
 end)
 
@@ -1258,6 +1339,9 @@ if SERVER then
                         ent:SetST_Time(600)
                         ent:SetST_PosX(0)
                         ent:SetST_PosY(0)
+                        ent:SetST_TimePosX(0)
+                        ent:SetST_TimePosY(0)
+                        ent:SetST_PosXYSync(false)
                         ent:SetST_TBCornerRadius(0)
                         ent:SetST_TBPosX(0)
                         ent:SetST_TBPosY(-50)
@@ -1294,6 +1378,9 @@ if SERVER then
                         ent:SetST_Time(60)
                         ent:SetST_PosX(0)
                         ent:SetST_PosY(0)
+                        ent:SetST_TimePosX(0)
+                        ent:SetST_TimePosY(0)
+                        ent:SetST_PosXYSync(false)
                         ent:SetST_TBCornerRadius(8)
                         ent:SetST_TBPosX(0)
                         ent:SetST_TBPosY(0)
@@ -1307,6 +1394,7 @@ if SERVER then
                         ent:SetST_CustomFont("Tahoma")
                         ent:SetST_FadeInTime(0.025)
                         ent:SetST_FadeOutTime(0.05)
+                        ent:SetST_JustifyText(false)
                         ent:SetST_StartSound(1)
                         ent:SetST_SecondStartSound(0)
                         ent:SetST_StopSound(2)

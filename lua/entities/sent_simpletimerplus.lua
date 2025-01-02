@@ -79,6 +79,10 @@ if CLIENT then
 		Name = "",
 		Time = 0,
 		Timer = 0,
+		PosX = 0,
+		PosY = 0,
+		TimePosX = 0,
+		TimePosY = 0,
 		State = 0,
 		Color = Vector( 0, 0, 0 ),
 		SecondColor = Vector( 0, 0, 0 ),
@@ -244,11 +248,21 @@ if CLIENT then
 				end
 
 				if STIMER_.GradientTextEffect != 0 then
-					DrawGradientText(tx, {ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.PosX, offset.y + STIMER_.PosY }, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", col, secondCol, offset.justify)
+					if STIMER_.PosXYSync then
+						DrawGradientText(tx, {ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.PosX, offset.y + STIMER_.PosY }, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", col, secondCol, offset.justify)
+					else
+						DrawGradientText(tx, {ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.TimePosX, offset.y + STIMER_.TimePosY }, STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", col, secondCol, offset.justify)
+					end
 				else
-					draw.TextShadow({ text = tx, pos = { ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.PosX, offset.y + STIMER_.PosY },
+					if STIMER_.PosXYSync then
+						draw.TextShadow({ text = tx, pos = { ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.PosX, offset.y + STIMER_.PosY },
 						font = STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", xalign = offset.justify,
 						yalign = TEXT_ALIGN_DOWN, color = col }, 1, STIMER_.LerpAlp * 255)
+					else
+						draw.TextShadow({ text = tx, pos = { ww + (offset.justify == TEXT_ALIGN_CENTER and 0 or -offset.x) + STIMER_.TimePosX, offset.y + STIMER_.TimePosY },
+						font = STIMER_.CustomFont ~= "" and STIMER_.CustomFont .. "_Font2" or "CourierNew_Font2", xalign = offset.justify,
+						yalign = TEXT_ALIGN_DOWN, color = col }, 1, STIMER_.LerpAlp * 255)
+					end
 				end
 			end
 		end
@@ -354,7 +368,7 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 	ent:SetST_GradientFrequency( 2 )
 	ent:SetST_JustifyText( false ) ent:SetST_TBCornerRadius( 8 ) ent:SetST_TBPosX( 0 ) ent:SetST_TBPosY( 0 )
 	ent:SetST_TBWidth( 400 ) ent:SetST_TBHeight( 100 ) ent:SetST_TBColor( Vector(0, 0, 0) ) ent:SetST_TBColorAlpha( 150 )
-	ent:SetST_PosX ( 0 ) ent:SetST_PosY( 0 )
+	ent:SetST_PosX ( 0 ) ent:SetST_PosY( 0 ) ent:SetST_TimePosX ( 0 ) ent:SetST_TimePosY( 0 ) ent:SetST_PosXYSync( 1 )
 	table.insert(STIMER_ENTS, ent) return ent
 end
 function ENT:SetupDataTables()
@@ -363,16 +377,19 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Vector", 0, "ST_Color", { KeyName = "stcolor", Edit = { title = "Timer Color", category = "Main", type = "VectorColor", order = 1 } } )
 	self:NetworkVar( "Vector", 1, "ST_SecondColor", { KeyName = "stsecondcolor", Edit = { title = "Timer Secondary Color (For Text Effects)", category = "Main", type = "VectorColor", order = 2 } })
 	self:NetworkVar( "Int", 0, "ST_Time", { KeyName = "sttime", Edit = { title = "Time", category = "Main", type = "Int", min = 1, max = 3600, order = 3 } } )
-	self:NetworkVar( "Int", 14, "ST_PosX", { KeyName = "stposx", Edit = { title = "Timer Position Offset X", category = "Main", type = "Int", min = -1920, max = 1920, order = 4 } })
-	self:NetworkVar( "Int", 15, "ST_PosY", { KeyName = "stposy", Edit = { title = "Timer Position Offset Y", category = "Main", type = "Int", min = -1080, max = 1080, order = 5 } })
+	self:NetworkVar( "Int", 14, "ST_PosX", { KeyName = "stposx", Edit = { title = "Timer Name Position Offset X", category = "Main", type = "Int", min = -1920, max = 1920, order = 4 } })
+	self:NetworkVar( "Int", 15, "ST_PosY", { KeyName = "stposy", Edit = { title = "Timer Name Position Offset Y", category = "Main", type = "Int", min = -1080, max = 1080, order = 4 } })
+	self:NetworkVar( "Int", 16, "ST_TimePosX", { KeyName = "sttimeposx", Edit = { title = "Timer Time Position Offset X", category = "Main", type = "Int", min = -1920, max = 1920, order = 5 } })
+	self:NetworkVar( "Int", 17, "ST_TimePosY", { KeyName = "sttimeposy", Edit = { title = "Timer Time Position Offset Y", category = "Main", type = "Int", min = -1080, max = 1080, order = 5 } })
+	self:NetworkVar( "Bool", 7, "ST_PosXYSync", { KeyName = "stposxysync", Edit = { title = "Sync Timer Text Positions", category = "Main", type = "Bool", order = 6 } } )
 	-- text box
-	self:NetworkVar( "Int", 16, "ST_TBCornerRadius", { KeyName = "sttbcornereadius", Edit = { title = "Textbox Corner Radius", category = "Text Box", type = "Int", min = 0, max = 200, order = 6 } })
-	self:NetworkVar( "Int", 17, "ST_TBPosX", { KeyName = "sttbposx", Edit = { title = "Textbox Position Offset X", category = "Text Box", type = "Int", min = -1920, max = /*ScrW()*/1920, order = 7 } })
-	self:NetworkVar( "Int", 18, "ST_TBPosY", { KeyName = "sttbposy", Edit = { title = "Textbox Position Offset Y", category = "Text Box", type = "Int", min = -1080, max = /*ScrH()*/1080, order = 8 } })
-	self:NetworkVar( "Int", 19, "ST_TBWidth", { KeyName = "sttbwidth", Edit = { title = "Textbox Width", category = "Text Box", type = "Int", min = 0, max = 1920, order = 9 } })
-	self:NetworkVar( "Int", 20, "ST_TBHeight", { KeyName = "sttbheight", Edit = { title = "Textbox Height", category = "Text Box", type = "Int", min = 0, max = 1080, order = 10 } })
+	self:NetworkVar( "Int", 18, "ST_TBCornerRadius", { KeyName = "sttbcornereadius", Edit = { title = "Textbox Corner Radius", category = "Text Box", type = "Int", min = 0, max = 200, order = 6 } })
+	self:NetworkVar( "Int", 19, "ST_TBPosX", { KeyName = "sttbposx", Edit = { title = "Textbox Position Offset X", category = "Text Box", type = "Int", min = -1920, max = /*ScrW()*/1920, order = 7 } })
+	self:NetworkVar( "Int", 20, "ST_TBPosY", { KeyName = "sttbposy", Edit = { title = "Textbox Position Offset Y", category = "Text Box", type = "Int", min = -1080, max = /*ScrH()*/1080, order = 8 } })
+	self:NetworkVar( "Int", 21, "ST_TBWidth", { KeyName = "sttbwidth", Edit = { title = "Textbox Width", category = "Text Box", type = "Int", min = 0, max = 1920, order = 9 } })
+	self:NetworkVar( "Int", 22, "ST_TBHeight", { KeyName = "sttbheight", Edit = { title = "Textbox Height", category = "Text Box", type = "Int", min = 0, max = 1080, order = 10 } })
 	self:NetworkVar( "Vector", 2, "ST_TBColor", { KeyName = "sttbcolor", Edit = { title = "Textbox Color", category = "Text Box", type = "VectorColor", order = 11 } })
-	self:NetworkVar( "Int", 21, "ST_TBColorAlpha", { KeyName = "sttbcoloralpha", Edit = { title = "Textbox Color Alpha", category = "Text Box", type = "Int", min = 0, max = 255, order = 12 } })
+	self:NetworkVar( "Int", 23, "ST_TBColorAlpha", { KeyName = "sttbcoloralpha", Edit = { title = "Textbox Color Alpha", category = "Text Box", type = "Int", min = 0, max = 255, order = 12 } })
 	-- hiding
 	self:NetworkVar( "Bool", 0, "ST_HHud", { KeyName = "sthhud", Edit = { title = "No HUD (Hide All UI)", category = "Hide", type = "Bool", order = 13 } } )
 	self:NetworkVar( "Bool", 1, "ST_HSnd", { KeyName = "sthsnd", Edit = { title = "No Sound", category = "Hide", type = "Bool", order = 14 } } )
@@ -494,7 +511,8 @@ function ENT:Think()
 		STIMER_.GradientFrequency = self:GetST_GradientFrequency()  STIMER_.TBCornerRadius = self:GetST_TBCornerRadius()
 		STIMER_.TBPosX = self:GetST_TBPosX() STIMER_.TBPosY = self:GetST_TBPosY() STIMER_.TBWidth = self:GetST_TBWidth() STIMER_.TBHeight = self:GetST_TBHeight()
 		STIMER_.TBColor = self:GetST_TBColor()  STIMER_.TBColorAlpha = self:GetST_TBColorAlpha()
-		STIMER_.PosX = self:GetST_PosX() STIMER_.PosY = self:GetST_PosY()
+		STIMER_.PosX = self:GetST_PosX() STIMER_.PosY = self:GetST_PosY() STIMER_.TimePosX = self:GetST_TimePosX() STIMER_.TimePosY = self:GetST_TimePosY()
+		STIMER_.PosXYSync = self:GetST_PosXYSync()
 
 		if STIMER_.StartSound == 1 then STIMER_.StartSound = "ambient/alarms/warningbell1.wav"
 			elseif STIMER_.StartSound == 2 then STIMER_.StartSound = "ambient/levels/canals/windchime2.wav"
