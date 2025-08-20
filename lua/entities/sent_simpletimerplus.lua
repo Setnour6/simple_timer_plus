@@ -360,7 +360,14 @@ function ENT:SpawnFunction( ply, tr, ClassName )
 	ent:SetAngles( Angle( 0, 0, 0 ) ) ent:Spawn() ent:Activate()
 	ent:SetST_Name( "Simple Timer Plus" ) ent:SetST_Color( Vector( 0, 1, 1 ) ) ent:SetST_SecondColor( Vector( 0, 1, 0 ) ) ent:SetST_Time( 60 )
 	ent:SetST_HHud( false ) ent:SetST_HSnd( false ) ent:SetST_HNot( true )
-	ent:SetST_CustomFont( "Tahoma" ) ent:SetST_FadeInTime ( 0.025 ) ent:SetST_FadeOutTime ( 0.05 )
+	ent:SetST_CustomFont( "Tahoma" ) 
+	if hideNSeek == nil then
+		ent:SetST_FadeInTime ( 0.025 ) 
+		ent:SetST_FadeOutTime ( 0.05 )
+	else
+		ent:SetST_FadeInTime ( 1 ) 
+		ent:SetST_FadeOutTime ( 1 )
+	end
 	ent:SetST_StartSound( 1 ) ent:SetST_SecondStartSound( 0 ) ent:SetST_StopSound( 2 ) ent:SetST_EndSound ( 3 )
 	ent:SetST_EStart( 0 ) ent:SetST_EStop( 0 ) ent:SetST_EEnd( 0 ) ent:SetST_Mission( 0 )
 	ent:SetST_AMission( 0 ) ent:SetST_ATimer( 2 ) ent:SetST_GlitchTextEffect( false )
@@ -425,7 +432,13 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "ST_State", function( self, var, old, new )
 			if old == new then return false end
 			if WireLib then Wire_TriggerOutput( self, "State", new ) end
-			if new == 0 then self:SetColor( Color( 255, 255, 255 ) )
+			if new == 0 then 
+				self:SetColor( Color( 255, 255, 255 )  )
+				if hideNSeek then
+					self:STimer_Event( self:GetST_EStop() )
+					if self:GetST_StopSound() ~= "" then self:EmitSound( self:GetST_StopSound() ) end
+					hideNSeek.playersInRound = {}
+				end
 			elseif new == 1 then
 				self:SetColor( Color( 255, 255, 0 ) )
 				self:STimer_Event( self:GetST_EStart() )
@@ -433,9 +446,13 @@ function ENT:SetupDataTables()
 				if self:GetST_StartSound() ~= "" then self:EmitSound( self:GetST_StartSound() ) end
 				if self:GetST_SecondStartSound() ~= "" then self:EmitSound( self:GetST_SecondStartSound() ) end
 			elseif new == 2 then
-				self:SetColor( Color( 255, 0, 0 ) )
-				self:STimer_Event( self:GetST_EEnd() )
-				if self:GetST_EndSound() ~= "" then self:EmitSound( self:GetST_EndSound() ) end
+				if hideNSeek then
+					self:SetST_State( 0 )
+				else
+					self:SetColor( Color( 255, 0, 0 ) )
+					self:STimer_Event( self:GetST_EEnd() )
+					if self:GetST_EndSound() ~= "" then self:EmitSound( self:GetST_EndSound() ) end
+				end
 			elseif new == 3 then
 				self:SetColor( Color( 0, 255, 0 ) )
 				self:STimer_Event( self:GetST_EStop() )
@@ -497,7 +514,7 @@ function ENT:Think()
 					if mis == 6 and !v:InVehicle() then al2 = true end
 				end if mis == 6 and !al2 then alo = true end
 			end if alo then STIMER_ENT:STimer_Event( mev ) STIMER_ENT:STimer_After( maf ) end return
-		end if sta == 1 and self:GetST_Timer() <= CurTime() then self:SetST_State( 2 ) self:STimer_After( ati ) end
+		end if sta == 1 and self:GetST_Timer() <= CurTime() then if hideNSeek then self:SetST_State( 0 ) else self:SetST_State( 2 ) self:STimer_After( ati ) end end
 	else if !IsValid( STIMER_ENT ) or STIMER_ENT != self then STIMER_ENT = self  STIMER_.State = self:GetST_State() return end
 		STIMER_.Name = self:GetST_Name()  STIMER_.Time = self:GetST_Time()
 		STIMER_.Color = self:GetST_Color()  STIMER_.SecondColor = self:GetST_SecondColor()
@@ -553,17 +570,35 @@ function ENT:Think()
 
 		if STIMER_.State != self:GetST_State() then local sta, snd, tex = self:GetST_State(), self:GetST_HSnd(), self:GetST_HNot()
 			local col = Color( STIMER_.Color.r * 255, STIMER_.Color.g * 255, STIMER_.Color.b * 255, 255 )
-			if sta == 1 then
-				if !snd and STIMER_.StartSound ~= "" then surface.PlaySound( STIMER_.StartSound ) end
-				if !snd and STIMER_.SecondStartSound ~= "" then surface.PlaySound( STIMER_.SecondStartSound ) end
-				if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " started. Timeout: " .. math.Round( self:GetST_Timer() - CurTime() ) .. "s." ) end
-			elseif sta == 2 then
-				if !snd and STIMER_.EndSound ~= "" then surface.PlaySound( STIMER_.EndSound ) end
-				if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " expired." ) end
-			elseif sta == 3 then
-				if !snd and STIMER_.StopSound ~= "" then surface.PlaySound( STIMER_.StopSound ) end
-				local ti = math.max( 0, math.Round( self:GetST_Time() - self:GetST_Timer() + CurTime(), 2 ) )
-				if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " stopped. Time: " .. ti .. "s." ) end
+			if hideNSeekC then
+				if sta == 1 then
+					if !snd and STIMER_.StartSound ~= "" then surface.PlaySound( STIMER_.StartSound ) end
+					if !snd and STIMER_.SecondStartSound ~= "" then surface.PlaySound( STIMER_.SecondStartSound ) end
+					if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " started. Timeout: " .. math.Round( self:GetST_Timer() - CurTime() ) .. "s." ) end
+				elseif sta == 2 then
+					if !snd and STIMER_.EndSound ~= "" then surface.PlaySound( STIMER_.EndSound ) end
+					if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " expired." ) end
+				elseif sta == 0 then
+					if !snd and STIMER_.StopSound ~= "" then surface.PlaySound( STIMER_.StopSound ) end
+					local ti = math.max( 0, math.Round( self:GetST_Time() - self:GetST_Timer() + CurTime(), 2 ) )
+					if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " toggled off. Time: " .. ti .. "s." ) end
+					net.Start("HNSStatus")
+					net.WriteBool(false)
+					net.SendToServer()
+				end
+			else
+				if sta == 1 then
+					if !snd and STIMER_.StartSound ~= "" then surface.PlaySound( STIMER_.StartSound ) end
+					if !snd and STIMER_.SecondStartSound ~= "" then surface.PlaySound( STIMER_.SecondStartSound ) end
+					if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " started. Timeout: " .. math.Round( self:GetST_Timer() - CurTime() ) .. "s." ) end
+				elseif sta == 2 then
+					if !snd and STIMER_.EndSound ~= "" then surface.PlaySound( STIMER_.EndSound ) end
+					if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " expired." ) end
+				elseif sta == 3 then
+					if !snd and STIMER_.StopSound ~= "" then surface.PlaySound( STIMER_.StopSound ) end
+					local ti = math.max( 0, math.Round( self:GetST_Time() - self:GetST_Timer() + CurTime(), 2 ) )
+					if !tex then chat.AddText( col, STIMER_.Name, Color( 255, 255, 255 ), " stopped. Time: " .. ti .. "s." ) end
+				end
 			end
 			STIMER_.State = self:GetST_State()
 		end
@@ -581,10 +616,10 @@ function ENT:Think()
 end
 function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
 function ENT:Use( act )
+	if hideNSeek then return end
 	if !IsValid( act ) or !act:IsPlayer() or !act:IsAdmin() or self:GetST_NextUse() > CurTime() then return end
 	local sta = self:GetST_State()  self:SetST_NextUse( CurTime() +0.5 )
 	if !self:GetST_HSnd() then self:EmitSound( "Weapon_AR2.Empty" ) end self.Editable = ( self:GetST_State() == 0 )
-	
 	if sta == 0 then
 		if IsValid(STIMER_ACTIVE) then
 			STIMER_ACTIVE:SetST_State(3)
@@ -596,6 +631,32 @@ function ENT:Use( act )
 		STIMER_ACTIVE = nil
 	else
 		self:SetST_State(0)
+	end
+end
+if hideNSeek then
+	function ENT:Toggle( act )
+		if !IsValid( act ) or !act:IsPlayer() or !act:IsAdmin() or self:GetST_NextUse() > CurTime() then return end
+		local sta = self:GetST_State()  self:SetST_NextUse( CurTime() +0.5 )
+		if !self:GetST_HSnd() then self:EmitSound( "Weapon_AR2.Empty" ) end self.Editable = ( self:GetST_State() == 0 )
+	
+		if sta == 0 then
+			if IsValid(STIMER_ACTIVE) then
+				STIMER_ACTIVE:SetST_State(3)
+			end
+			self:SetST_State(1)
+			STIMER_ACTIVE = self
+			net.Start("HNSStatus")
+			net.WriteBool(true)
+			net.Broadcast()
+		elseif sta == 1 then
+			self:SetST_State(0)
+			STIMER_ACTIVE = nil
+			net.Start("HNSStatus")
+			net.WriteBool(false)
+			net.Broadcast()
+		else
+			self:SetST_State(0)
+		end
 	end
 end
 if SERVER then return end local Mat = Material( "xdeedited/checkpointclock" )
