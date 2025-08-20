@@ -33,6 +33,7 @@ Basically Simple Timer ( https://steamcommunity.com/sharedfiles/filedetails/?id=
 - Presets, which can be applied by using the associated console command (see Console Commands section below)
 - Options to utilize effects for the text, such as Gradients and Glitchy Text. Defaults: Disabled
 - A Second Color to choose for the Gradient Text Effect. Default: RGB(0, 255, 0)
+- Hide and Seek Mode
 
 [h3] Console Commands [/h3]
 <> denotes command usage choice. input is only for setters or when prompted.
@@ -87,6 +88,6 @@ Alternatively, you can use the simpletimerplus_setpreset console command to chan
 [h1] Credits [/h1]
 LemonCola3424 - Creator of Simple Timer
 Setnour6 - Adjustments, Mod Publisher
-malcolm - Code Contributor
+malcolm/Zarete - Code Contributor
 DarkStar - Sound & Font Contributor
 Next_Rent - Sound Contributor
